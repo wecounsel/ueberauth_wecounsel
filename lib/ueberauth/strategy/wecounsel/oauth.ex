@@ -12,9 +12,9 @@ defmodule Ueberauth.Strategy.Wecounsel.OAuth do
 
   @defaults [
      strategy: __MODULE__,
-     site: "https://www.wecounsel.tes",
+     site: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}",
      authorize_url: "/oauth/authorize",
-     token_url: "https://www.wecounsel.tes/oauth/token"
+     token_url: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/token"
    ]
 
   @doc """

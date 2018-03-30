@@ -120,7 +120,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
     conn = put_private(conn, :wecounsel_token, token)
 
     # userinfo_endpoint
-    path = "https://www.wecounsel.tes/oauth/me.json"
+    path = "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/me.json"
     resp = Ueberauth.Strategy.Wecounsel.OAuth.get(token, path)
 
     case resp do
