@@ -92,13 +92,11 @@ defmodule Ueberauth.Strategy.Wecounsel do
 
     %Info{
       email: user["email"],
-      first_name: user["given_name"],
-      image: user["picture"],
-      last_name: user["family_name"],
-      name: user["name"],
+      first_name: user["first_name"],
+      last_name: user["last_name"],
       urls: %{
         profile: user["profile"],
-        website: user["hd"]
+        website: user["hd"],
       }
     }
   end
@@ -107,10 +105,13 @@ defmodule Ueberauth.Strategy.Wecounsel do
   Stores the raw information (including the token) obtained from the wecounsel callback.
   """
   def extra(conn) do
+    user = conn.private.wecounsel_user
     %Extra{
       raw_info: %{
         token: conn.private.wecounsel_token,
-        user: conn.private.wecounsel_user
+        user: conn.private.wecounsel_user,
+        user_type: user["user_type"],
+        wecounsel_user_id: user["id"]
       }
     }
   end
