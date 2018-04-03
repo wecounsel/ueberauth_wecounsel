@@ -5,9 +5,12 @@ defmodule Ueberauth.Strategy.Wecounsel do
 
   use Ueberauth.Strategy, uid_field: :sub, default_scope: "email", hd: nil
 
+  alias OAuth2.Error
+  alias OAuth2.Response
   alias Ueberauth.Auth.Info
   alias Ueberauth.Auth.Credentials
   alias Ueberauth.Auth.Extra
+  alias Ueberauth.Strategy.Wecounsel.OAuth
 
   @doc """
   Handles initial request for Wecounsel authentication.
@@ -25,7 +28,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
       |> with_param(:state, conn)
       |> Keyword.put(:redirect_uri, callback_url(conn))
 
-    redirect!(conn, Ueberauth.Strategy.Wecounsel.OAuth.authorize_url!(opts))
+    redirect!(conn, OAuth.authorize_url!(opts))
   end
 
   @doc """
@@ -34,7 +37,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
     params = [code: code]
     opts = [redirect_uri: callback_url(conn)]
-    case Ueberauth.Strategy.Wecounsel.OAuth.get_access_token(params, opts) do
+    case OAuth.get_access_token(params, opts) do
       {:ok, token} ->
         fetch_user(conn, token)
       {:error, {error_code, error_description}} ->
@@ -75,7 +78,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
     scopes       = String.split(scope_string, ",")
 
     %Credentials{
-      expires: !!token.expires_at,
+      expires: present?(token.expires_at),
       expires_at: token.expires_at,
       scopes: scopes,
       token_type: Map.get(token, :token_type),
@@ -116,22 +119,21 @@ defmodule Ueberauth.Strategy.Wecounsel do
     }
   end
 
-
   defp fetch_user(conn, token) do
     conn = put_private(conn, :wecounsel_token, token)
 
     # userinfo_endpoint
     path = "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/me.json"
-    resp = Ueberauth.Strategy.Wecounsel.OAuth.get(token, path)
+    resp = OAuth.get(token, path)
 
     case resp do
-      {:ok, %OAuth2.Response{status_code: 401, body: _body}} ->
+      {:ok, %Response{status_code: 401, body: _body}} ->
         set_errors!(conn, [error("token", "unauthorized")])
-      {:ok, %OAuth2.Response{status_code: status_code, body: user}} when status_code in 200..399 ->
+      {:ok, %Response{status_code: status_code, body: user}} when status_code in 200..399 ->
         put_private(conn, :wecounsel_user, user)
-      {:error, %OAuth2.Response{status_code: status_code}} ->
+      {:error, %Response{status_code: status_code}} ->
         set_errors!(conn, [error("OAuth2", status_code)])
-      {:error, %OAuth2.Error{reason: reason}} ->
+      {:error, %Error{reason: reason}} ->
         set_errors!(conn, [error("OAuth2", reason)])
     end
   end
@@ -147,4 +149,8 @@ defmodule Ueberauth.Strategy.Wecounsel do
   defp option(conn, key) do
     Keyword.get(options(conn), key, Keyword.get(default_options(), key))
   end
+
+  defp present?(nil), do: false
+  defp present?(false), do: false
+  defp present?(_), do: true
 end
