@@ -28,9 +28,9 @@ defmodule UeberauthWecounsel.Mixfile do
      {:oauth2, "~> 0.9"},
      {:ueberauth, "~> 0.4"},
 
-     {:credo, "~> 0.8", only: [:dev, :test]},
+     {:credo, "~> 0.9.0-rc1", only: [:dev, :test]},
      {:earmark, ">= 0.0.0", only: :dev},
-     {:ex_doc, "~> 0.3", only: :dev},
+     {:ex_doc, "~> 0.3", only: :dev}
     ]
   end
 
