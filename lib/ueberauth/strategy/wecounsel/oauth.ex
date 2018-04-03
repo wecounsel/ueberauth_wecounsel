@@ -16,7 +16,7 @@ defmodule Ueberauth.Strategy.Wecounsel.OAuth do
   @defaults [
      strategy: __MODULE__,
      site: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}",
-     authorize_url: "/oauth/authorize",
+     authorize_url: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/authorize",
      token_url: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/token"
    ]
 
