@@ -37,9 +37,11 @@ defmodule Ueberauth.Strategy.Wecounsel do
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
     params = [code: code]
     opts = [redirect_uri: callback_url(conn)]
+
     case OAuth.get_access_token(params, opts) do
       {:ok, token} ->
         fetch_user(conn, token)
+
       {:error, {error_code, error_description}} ->
         set_errors!(conn, [error(error_code, error_description)])
     end
@@ -73,9 +75,9 @@ defmodule Ueberauth.Strategy.Wecounsel do
   Includes the credentials from the wecounsel response.
   """
   def credentials(conn) do
-    token        = conn.private.wecounsel_token
-    scope_string = (token.other_params["scope"] || "")
-    scopes       = String.split(scope_string, ",")
+    token = conn.private.wecounsel_token
+    scope_string = token.other_params["scope"] || ""
+    scopes = String.split(scope_string, ",")
 
     %Credentials{
       expires: present?(token.expires_at),
@@ -99,7 +101,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
       last_name: user["last_name"],
       urls: %{
         profile: user["profile"],
-        website: user["hd"],
+        website: user["hd"]
       }
     }
   end
@@ -109,6 +111,7 @@ defmodule Ueberauth.Strategy.Wecounsel do
   """
   def extra(conn) do
     user = conn.private.wecounsel_user
+
     %Extra{
       raw_info: %{
         token: conn.private.wecounsel_token,
@@ -123,16 +126,21 @@ defmodule Ueberauth.Strategy.Wecounsel do
     conn = put_private(conn, :wecounsel_token, token)
 
     # userinfo_endpoint
-    path = "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/me.json"
+    path =
+      "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/me.json"
+
     resp = OAuth.get(token, path)
 
     case resp do
       {:ok, %Response{status_code: 401, body: _body}} ->
         set_errors!(conn, [error("token", "unauthorized")])
+
       {:ok, %Response{status_code: status_code, body: user}} when status_code in 200..399 ->
         put_private(conn, :wecounsel_user, user)
+
       {:error, %Response{status_code: status_code}} ->
         set_errors!(conn, [error("OAuth2", status_code)])
+
       {:error, %Error{reason: reason}} ->
         set_errors!(conn, [error("OAuth2", reason)])
     end
