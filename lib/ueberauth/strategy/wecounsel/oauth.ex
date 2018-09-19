@@ -13,14 +13,16 @@ defmodule Ueberauth.Strategy.Wecounsel.OAuth do
   alias OAuth2.Client
   alias OAuth2.Strategy.AuthCode
 
-  @defaults [
-    strategy: __MODULE__,
-    site: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}",
-    authorize_url:
-      "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/authorize",
-    token_url:
-      "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/token"
-  ]
+  def defaults() do
+    [
+      strategy: __MODULE__,
+      site: "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}",
+      authorize_url:
+        "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/authorize",
+      token_url:
+        "#{Application.get_env(:ueberauth_wecounsel, :base_url, "http://api.wecounsel.com")}/oauth/token"
+    ]
+  end
 
   @doc """
   Construct a client for requests to Wecounsel.
@@ -33,7 +35,7 @@ defmodule Ueberauth.Strategy.Wecounsel.OAuth do
     config = Application.get_env(:ueberauth, Ueberauth.Strategy.Wecounsel.OAuth)
 
     opts =
-      @defaults
+      defaults()
       |> Keyword.merge(config)
       |> Keyword.merge(opts)
 
